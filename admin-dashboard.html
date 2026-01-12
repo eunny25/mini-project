@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Admin Dashboard</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background:#025f7c; }
+        .stat { padding:16px;border-radius:8px;background:white;box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+        .table-sm td, .table-sm th { vertical-align: middle; }
+        .card-section { margin-bottom:18px; }
+    </style>
+</head>
+<body>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Admin Dashboard</h3>
+        <div>
+            <button id="logoutBtn" class="btn btn-outline-secondary">Logout</button>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-2">
+            <div class="stat text-center">
+                <div class="h5" id="totalUsers">0</div>
+                <div class="text-muted small">Total Users</div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="stat text-center">
+                <div class="h5" id="applicantsCount">0</div>
+                <div class="text-muted small">Applicants</div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="stat text-center">
+                <div class="h5" id="employersCount">0</div>
+                <div class="text-muted small">Employers</div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="stat text-center">
+                <div class="h5" id="adminsCount">0</div>
+                <div class="text-muted small">Admins</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat">
+                <div class="text-center"><strong class="text-success">Admin Credentials</strong></div>
+                <div id="adminCredentialsContainer" class="mt-2" style="max-height:80px;overflow:auto;font-size:0.85rem;">
+                    <!-- Admin list with credentials -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-7">
+            <div class="card card-section">
+                <div class="card-header">
+                    <strong>All Registered Users</strong>
+                </div>
+                <div class="card-body p-0">
+                    <div id="usersTableContainer" style="overflow:auto;max-height:420px;padding:8px;"></div>
+                </div>
+            </div>
+
+            <div class="card card-section">
+                <div class="card-header">
+                    <strong>Employer Verification Queue</strong>
+                </div>
+                <div class="card-body" id="verificationsContainer">
+                    <!-- pending verifications will render here -->
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card card-section">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <strong>Security Alerts</strong>
+                    <div>
+                        <button class="btn btn-sm btn-outline-secondary mr-2" id="generateTestAlertBtn">Generate Test Alert</button>
+                        <button class="btn btn-sm btn-outline-danger" id="clearAlertsBtn">Clear All</button>
+                    </div>
+                </div>
+                <div class="card-body" id="alertsContainer" style="max-height:520px;overflow:auto;padding:8px;">
+                    <!-- alerts -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Admin access guard
+    window.addEventListener('load', function() {
+        const role = localStorage.getItem('userRole');
+        const username = localStorage.getItem('username');
+        if (role !== 'admin' || !username) {
+            alert('Access denied. Please login as an admin.');
+            window.location.href = 'login form.html';
+            return;
+        }
+
+        loadUserStats();
+        renderUsersTable();
+        loadVerificationQueue();
+        loadSecurityAlerts();
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+        if (confirm('Logout?')) {
+            localStorage.removeItem('username');
+            localStorage.removeItem('userRole');
+            window.location.href = 'login form.html';
+        }
+    });
+
+    function getAllRegisteredUsers() {
+        const users = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('userRegistration_')) {
+                try {
+                    const data = JSON.parse(localStorage.getItem(key));
+                    users.push(data);
+                } catch(e) {}
+            }
+        }
+        return users.sort((a,b) => a.username.localeCompare(b.username));
+    }
+
+    function loadUserStats() {
+        const users = getAllRegisteredUsers();
+        const total = users.length;
+        const applicants = users.filter(u => (u.role || localStorage.getItem('registeredRole_' + u.username)) === 'applicant').length;
+        const employers = users.filter(u => (u.role || localStorage.getItem('registeredRole_' + u.username)) === 'employer').length;
+        const admins = users.filter(u => (u.role || localStorage.getItem('registeredRole_' + u.username)) === 'admin').length;
+
+        document.getElementById('totalUsers').textContent = total;
+        document.getElementById('applicantsCount').textContent = applicants;
+        document.getElementById('employersCount').textContent = employers;
+        document.getElementById('adminsCount').textContent = admins;
+
+        // Display admin credentials
+        displayAdminCredentials(users);
+    }
+
+    function displayAdminCredentials(users) {
+        const admins = users.filter(u => (u.role || localStorage.getItem('registeredRole_' + u.username)) === 'admin');
+        const container = document.getElementById('adminCredentialsContainer');
+        
+        if (admins.length === 0) {
+            container.innerHTML = '<p class="text-muted">No admins registered.</p>';
+            return;
+        }
+
+        container.innerHTML = admins.map(admin => {
+            const createdAt = admin.registrationDate || admin.createdAt || 'N/A';
+            let adminEmail = 'N/A';
+            try {
+                const profile = JSON.parse(localStorage.getItem('userProfile_' + admin.username) || 'null');
+                if (profile && profile.email) {
+                    adminEmail = profile.email;
+                } else if (admin.email) {
+                    adminEmail = admin.email;
+                }
+            } catch(e) {}
+            
+            return `<div class="mb-2 pb-2" style="border-bottom:1px solid #ddd;">
+                <div><strong>${admin.username}</strong></div>
+                <div class="text-muted small">Email: ${adminEmail}</div>
+                <div class="text-muted small">Created: ${createdAt}</div>
+            </div>`;
+        }).join('');
+    }
+
+    function renderUsersTable() {
+        const users = getAllRegisteredUsers();
+        const container = document.getElementById('usersTableContainer');
+        if (users.length === 0) {
+            container.innerHTML = '<p class="text-muted">No registered users yet.</p>';
+            return;
+        }
+
+        container.innerHTML = `
+            <table class="table table-sm mb-0">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>Created At</th>
+                        <th>Updated At</th>
+                        <th>Last Active</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${users.map(u => {
+                        const role = u.role || localStorage.getItem('registeredRole_' + u.username) || 'applicant';
+                        const createdAt = u.registrationDate || u.createdAt || 'N/A';
+                        const updatedAt = u.updatedAt || createdAt || 'N/A';
+                        const lastActive = u.lastActive || localStorage.getItem('lastActive_' + u.username) || 'Never';
+                        return `
+                        <tr>
+                            <td><strong>${u.username}</strong></td>
+                            <td><span class="badge ${role === 'admin' ? 'badge-danger' : role === 'employer' ? 'badge-primary' : 'badge-info'}">${role}</span></td>
+                            <td><small>${createdAt}</small></td>
+                            <td><small>${updatedAt}</small></td>
+                            <td><small>${lastActive}</small></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-info" onclick="viewUser('${u.username}')">View</button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteUser('${u.username}')">Delete</button>
+                            </td>
+                        </tr>
+                    `}).join('')}
+                </tbody>
+            </table>
+        `;
+    }
+
+    function viewUser(username) {
+        const reg = JSON.parse(localStorage.getItem('userRegistration_' + username) || 'null');
+        const profile = JSON.parse(localStorage.getItem('userProfile_' + username) || localStorage.getItem('userProfile') || 'null');
+        const role = reg ? reg.role : localStorage.getItem('registeredRole_' + username);
+        const createdAt = reg ? (reg.registrationDate || reg.createdAt) : 'N/A';
+        const updatedAt = reg ? (reg.updatedAt || createdAt) : 'N/A';
+        const lastActive = localStorage.getItem('lastActive_' + username) || 'Never';
+        
+        let html = `<div style="max-height:420px;overflow:auto;">
+            <p><strong>Username:</strong> ${username}</p>
+            <p><strong>Role:</strong> ${role || 'applicant'}</p>
+            <p><strong>Created At:</strong> ${createdAt}</p>
+            <p><strong>Updated At:</strong> ${updatedAt}</p>
+            <p><strong>Last Active:</strong> ${lastActive}</p>
+            <hr>`;
+        if (profile) {
+            html += `<p><strong>Full name:</strong> ${profile.fullName || ''}</p>
+                <p><strong>Email:</strong> ${profile.email || ''}</p>
+                <p><strong>Phone:</strong> ${profile.phone || ''}</p>
+                <p><strong>Bio:</strong> ${profile.bio || ''}</p>`;
+        }
+        html += `</div>`;
+        const w = window.open('', '_blank', 'width=600,height=500');
+        w.document.write('<html><head><title>User details</title></head><body>' + html + '</body></html>');
+    }
+
+    function deleteUser(username) {
+        if (!confirm('Delete user ' + username + ' and all associated data?')) return;
+        // remove registration and related keys
+        const keysToRemove = [
+            'registeredRole_' + username,
+            'userRegistration_' + username,
+            'userProfile_' + username,
+            'userProfile',
+            'userResume_' + username,
+            'userResume',
+            'failedLogin_' + username,
+            'employerVerification_' + username,
+            'employerJobs_' + username,
+            'employerLogo_' + username,
+            'notifications_' + username
+        ];
+        for (const k of keysToRemove) localStorage.removeItem(k);
+        // also remove any applications by this user
+        let apps = JSON.parse(localStorage.getItem('applications') || '[]');
+        apps = apps.filter(a => a.applicantUsername !== username);
+        localStorage.setItem('applications', JSON.stringify(apps));
+
+        // refresh
+        loadUserStats();
+        renderUsersTable();
+        alert('User deleted and related data removed.');
+    }
+
+    // Verification queue
+    function loadVerificationQueue() {
+        const pending = JSON.parse(localStorage.getItem('adminPendingVerifications') || '[]');
+        const container = document.getElementById('verificationsContainer');
+        if (!pending || pending.length === 0) {
+            container.innerHTML = '<p class="text-muted">No pending verifications.</p>';
+            return;
+        }
+
+        container.innerHTML = pending.map(item => {
+            const user = item.username || item.user || item.name || '';
+            const business = item.businessName || item.business || '';
+            const date = item.submittedAt || item.registrationDate || item.date || '';
+            const cred = item.credentialFileName || (item.credential && item.credential.fileName) || '';
+            return `
+                <div class="border p-2 mb-2">
+                    <div><strong>${user}</strong> — ${business}</div>
+                    <div class="text-muted small">Submitted: ${date}</div>
+                    <div class="mt-2">
+                        ${cred ? `<a href="#" onclick="downloadVerificationCredential('${user}')">Download credential</a>` : ''}
+                    </div>
+                    <div class="mt-2">
+                        <button class="btn btn-sm btn-success" onclick="approveVerification('${user}')">Approve</button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="rejectVerification('${user}')">Reject</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function downloadVerificationCredential(username) {
+        const ver = JSON.parse(localStorage.getItem('employerVerification_' + username) || 'null');
+        if (ver && ver.credential && ver.credential.fileData) {
+            const link = document.createElement('a');
+            link.href = ver.credential.fileData;
+            link.download = ver.credential.fileName || (username + '_credential');
+            link.click();
+        } else {
+            alert('Credential file not found.');
+        }
+    }
+
+    function approveVerification(username) {
+        if (!confirm('Approve employer verification for ' + username + '?')) return;
+        const verKey = 'employerVerification_' + username;
+        let ver = JSON.parse(localStorage.getItem(verKey) || 'null');
+        if (!ver) ver = {};
+        ver.status = 'approved';
+        ver.reviewedAt = new Date().toLocaleString();
+        localStorage.setItem(verKey, JSON.stringify(ver));
+
+        // remove from pending list
+        let pending = JSON.parse(localStorage.getItem('adminPendingVerifications') || '[]');
+        pending = pending.filter(p => (p.username || p.user) !== username);
+        localStorage.setItem('adminPendingVerifications', JSON.stringify(pending));
+
+        // notify the employer
+        const notifKey = 'notifications_' + username;
+        const notes = JSON.parse(localStorage.getItem(notifKey) || '[]');
+        notes.unshift({ id: Date.now(), type: 'employer_verified', message: 'Your business verification has been approved. You can now access employer features.', date: new Date().toLocaleString(), internshipTitle: '', read: false });
+        localStorage.setItem(notifKey, JSON.stringify(notes));
+
+        loadVerificationQueue();
+        alert('Employer verified and notified.');
+    }
+
+    function rejectVerification(username) {
+        const reason = prompt('Enter rejection reason for ' + username + ':');
+        if (reason === null) return; // cancelled
+        const verKey = 'employerVerification_' + username;
+        let ver = JSON.parse(localStorage.getItem(verKey) || 'null');
+        if (!ver) ver = {};
+        ver.status = 'rejected';
+        ver.reviewedAt = new Date().toLocaleString();
+        ver.rejectionReason = reason;
+        localStorage.setItem(verKey, JSON.stringify(ver));
+
+        // remove from pending list
+        let pending = JSON.parse(localStorage.getItem('adminPendingVerifications') || '[]');
+        pending = pending.filter(p => (p.username || p.user) !== username);
+        localStorage.setItem('adminPendingVerifications', JSON.stringify(pending));
+
+        // notify the employer
+        const notifKey = 'notifications_' + username;
+        const notes = JSON.parse(localStorage.getItem(notifKey) || '[]');
+        notes.unshift({ id: Date.now(), type: 'employer_rejected', message: 'Your business verification was rejected: ' + reason, date: new Date().toLocaleString(), internshipTitle: '', read: false });
+        localStorage.setItem(notifKey, JSON.stringify(notes));
+
+        loadVerificationQueue();
+        alert('Employer rejected and notified.');
+    }
+
+    // Security alerts
+    function loadSecurityAlerts() {
+        const alerts = JSON.parse(localStorage.getItem('securityAlerts') || '[]');
+        const container = document.getElementById('alertsContainer');
+        if (!alerts || alerts.length === 0) {
+            container.innerHTML = '<p class="text-muted">No security alerts.</p>';
+            return;
+        }
+
+        container.innerHTML = alerts.map(a => {
+            const username = a.username || a.user || a.name || '';
+            let email = '';
+            try {
+                const profile = JSON.parse(localStorage.getItem('userProfile_' + username) || 'null');
+                if (profile && profile.email) {
+                    email = profile.email;
+                } else {
+                    const reg = JSON.parse(localStorage.getItem('userRegistration_' + username) || 'null');
+                    if (reg && reg.email) email = reg.email;
+                }
+            } catch (e) {}
+
+            const userDisplay = username ? 'User: ' + username + (email ? ' (' + email + ')' : '') + ' · ' : '';
+
+            return `
+            <div class="border p-2 mb-2">
+                <div><strong>${a.type}</strong> — <span class="text-muted small">${a.date}</span></div>
+                <div>${userDisplay}${a.message}</div>
+                <div class="mt-2">
+                    <button class="btn btn-sm btn-outline-success" onclick="resolveAlert(${a.id})">Resolve</button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="removeAlert(${a.id})">Delete</button>
+                </div>
+            </div>
+        `;
+        }).join('');
+    }
+
+    function resolveAlert(id) {
+        let alerts = JSON.parse(localStorage.getItem('securityAlerts') || '[]');
+        const idx = alerts.findIndex(a => a.id === id);
+        if (idx !== -1) {
+            // mark resolved by removing or tagging; we'll remove
+            alerts.splice(idx,1);
+            localStorage.setItem('securityAlerts', JSON.stringify(alerts));
+            loadSecurityAlerts();
+            alert('Alert resolved.');
+        }
+    }
+
+    function removeAlert(id) {
+        if (!confirm('Delete this alert permanently?')) return;
+        let alerts = JSON.parse(localStorage.getItem('securityAlerts') || '[]');
+        alerts = alerts.filter(a => a.id !== id);
+        localStorage.setItem('securityAlerts', JSON.stringify(alerts));
+        loadSecurityAlerts();
+    }
+
+    document.getElementById('clearAlertsBtn').addEventListener('click', function() {
+        if (!confirm('Clear all security alerts?')) return;
+        localStorage.removeItem('securityAlerts');
+        loadSecurityAlerts();
+    });
+
+    // Test alert generator
+    document.getElementById('generateTestAlertBtn').addEventListener('click', function() {
+        generateTestAlert();
+    });
+
+    function generateTestAlert() {
+        const username = 'testuser';
+
+        // Ensure test user profile/registration exists so email can be shown
+        try {
+            const profileKey = 'userProfile_' + username;
+            if (!localStorage.getItem(profileKey)) {
+                const profile = { fullName: 'Test User', email: 'testuser@example.com', phone: '', bio: 'Auto-generated test user' };
+                localStorage.setItem(profileKey, JSON.stringify(profile));
+            }
+
+            const regKey = 'userRegistration_' + username;
+            if (!localStorage.getItem(regKey)) {
+                const reg = { username: username, role: 'applicant', registrationDate: new Date().toLocaleString(), email: 'testuser@example.com' };
+                localStorage.setItem(regKey, JSON.stringify(reg));
+            }
+        } catch (e) { console.error('Failed to create test profile', e); }
+
+        const alerts = JSON.parse(localStorage.getItem('securityAlerts') || '[]');
+        const alertObj = {
+            id: Date.now(),
+            type: 'OTP Sent',
+            username: username,
+            message: 'An OTP was sent to the user for verification.',
+            date: new Date().toLocaleString()
+        };
+        alerts.unshift(alertObj);
+        localStorage.setItem('securityAlerts', JSON.stringify(alerts));
+        loadSecurityAlerts();
+        alert('Test security alert generated for ' + username + ' (testuser@example.com)');
+    }
+
+</script>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

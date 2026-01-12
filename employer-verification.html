@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employer Verification</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar-top {
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            flex-shrink: 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .navbar-top h3 {
+            margin: 0;
+            font-weight: bold;
+            font-size: 1.5em;
+        }
+
+        .btn-logout {
+            padding: 8px 16px;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .verification-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            max-width: 700px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .verification-header {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .verification-header h2 {
+            margin: 0;
+            font-weight: bold;
+        }
+
+        .verification-header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+        }
+
+        .verification-body {
+            padding: 40px 30px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            text-align: center;
+            width: 100%;
+        }
+
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .status-approved {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-rejected {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+        }
+
+        .form-section-title {
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #007bff;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 10px 15px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        .upload-zone {
+            border: 2px dashed #007bff;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            background-color: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-zone:hover {
+            background-color: #e7f1ff;
+            border-color: #0056b3;
+        }
+
+        .upload-zone.drag-over {
+            background-color: #e7f1ff;
+            border-color: #0056b3;
+        }
+
+        .uploaded-file {
+            background-color: #f8f9fa;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-submit {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 40px;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            width: 100%;
+            transition: all 0.3s;
+        }
+
+        .btn-submit:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+        }
+
+        .btn-submit:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .alert-info {
+            background-color: #e7f1ff;
+            border: 1px solid #b3d9ff;
+            color: #004085;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 25px;
+        }
+
+        .verification-info {
+            background-color: #f0f4ff;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 25px;
+        }
+
+        .verification-info h5 {
+            color: #007bff;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .verification-info ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .verification-info li {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .approval-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .approval-status-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+            margin-bottom: 20px;
+        }
+
+        .approval-status-box h5 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .approval-status-box p {
+            margin: 0;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+<div class="navbar-top">
+    <h3><i class="fas fa-building"></i> Employer Account Verification</h3>
+    <button class="btn btn-sm btn-light" id="logoutBtn">
+        <i class="fas fa-sign-out-alt"></i> Logout
+    </button>
+</div>
+
+<div class="container">
+    <div class="verification-container">
+        <div class="verification-header">
+            <h2><i class="fas fa-certificate"></i> Business Verification</h2>
+            <p>Complete your business verification to start posting internship opportunities</p>
+        </div>
+
+        <div class="verification-body">
+            <!-- Verification Status -->
+            <div id="statusSection"></div>
+
+            <!-- Verification Form -->
+            <div id="formSection">
+                <div class="alert-info">
+                    <strong><i class="fas fa-info-circle"></i> Important:</strong> Please provide accurate business information. Your account will be reviewed by our verification team within 2-3 business days.
+                </div>
+
+                <form id="verificationForm">
+                    <!-- Business Information Section -->
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <i class="fas fa-briefcase"></i> Business Information
+                        </div>
+
+                        <div class="form-group">
+                            <label for="businessName">Business Name *</label>
+                            <input type="text" class="form-control" id="businessName" placeholder="Enter your business name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="businessType">Type of Business *</label>
+                            <select class="form-control" id="businessType" required>
+                                <option value="">-- Select Business Type --</option>
+                                <option value="Technology">Technology</option>
+                                <option value="Finance">Finance</option>
+                                <option value="Healthcare">Healthcare</option>
+                                <option value="Education">Education</option>
+                                <option value="Retail">Retail</option>
+                                <option value="Manufacturing">Manufacturing</option>
+                                <option value="Consulting">Consulting</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="tinNumber">TIN Number (Tax Identification Number) *</label>
+                            <input type="text" class="form-control" id="tinNumber" placeholder="Enter your TIN number" required>
+                            <small class="text-muted">e.g., 12-3456789 or similar format</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="brelaNumber">BRELA Registration No</label>
+                            <input type="text" class="form-control" id="brelaNumber" placeholder="Enter BRELA registration number (if applicable)">
+                            <small class="text-muted">Enter your Tanzania BRELA registration number (optional but recommended).</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="location">Business Location *</label>
+                            <input type="text" class="form-control" id="location" placeholder="Enter your business address" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="city">City/Region *</label>
+                            <input type="text" class="form-control" id="city" placeholder="Enter city or region" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="phone">Business Phone Number *</label>
+                            <input type="tel" class="form-control" id="phone" placeholder="Enter phone number" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Business Email *</label>
+                            <input type="email" class="form-control" id="email" placeholder="Enter business email" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description">Business Description</label>
+                            <textarea class="form-control" id="description" rows="3" placeholder="Brief description of your business (optional)"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Document Upload Section -->
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <i class="fas fa-file-upload"></i> Business Credentials
+                        </div>
+
+                        <div class="verification-info">
+                            <h5>Required Documents:</h5>
+                            <ul>
+                                <li>Business registration certificate</li>
+                                <li>Business license (if applicable)</li>
+                                <li>Tax identification Number (TIN) Certificate</li>
+                                <li>National ID of Authorized Representative</li>
+                                <li>Company Profile</li>
+                                <li>Proof of business address</li>
+                            </ul>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="credentialUpload">Upload Business Credentials *</label>
+                            <div class="upload-zone" id="uploadZone">
+                                <i class="fas fa-cloud-upload-alt" style="font-size: 40px; color: #007bff; margin-bottom: 15px;"></i>
+                                <p><strong>Click to upload or drag and drop</strong></p>
+                                <p class="text-muted small">PDF, JPG, PNG (Max 30MB)</p>
+                                <input type="file" id="credentialUpload" style="display:none;" accept=".pdf,.jpg,.jpeg,.png">
+                            </div>
+                            <div id="uploadedFiles"></div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-check-circle"></i> Submit for Verification
+                    </button>
+                </form>
+            </div>
+
+            <!-- Approval Pending Section -->
+            <div id="approvalSection" style="display: none;">
+                <div class="approval-status-box">
+                    <h5><i class="fas fa-hourglass-half"></i> Verification Under Review</h5>
+                    <p>Your business credentials have been submitted and are currently under review by our team. You will receive an email notification once your account has been verified.</p>
+                </div>
+                <button class="btn btn-secondary" onclick="editVerification()">Edit Information</button>
+            </div>
+
+            <!-- Approved Section -->
+            <div id="approvedSection" style="display: none;">
+                <div class="approval-status-box" style="border-left-color: #28a745; background-color: #d4edda;">
+                    <h5 style="color: #155724;"><i class="fas fa-check-circle"></i> Account Verified</h5>
+                    <p style="color: #155724;">Congratulations! Your business account has been approved. You can now proceed to create internship opportunities.</p>
+                </div>
+                <a href="employer-dashboard.html" class="btn btn-primary" style="width: 100%;">
+                    <i class="fas fa-arrow-right"></i> Go to Employer Dashboard
+                </a>
+            </div>
+
+            <!-- Rejected Section -->
+            <div id="rejectedSection" style="display: none;">
+                <div class="approval-status-box" style="border-left-color: #dc3545; background-color: #f8d7da;">
+                    <h5 style="color: #721c24;"><i class="fas fa-times-circle"></i> Verification Rejected</h5>
+                    <p style="color: #721c24;">Unfortunately, your verification was not approved. Reason: <span id="rejectionReason"></span></p>
+                </div>
+                <button class="btn btn-primary" onclick="editVerification()" style="width: 100%;">
+                    <i class="fas fa-edit"></i> Resubmit Information
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Check if user is logged in as employer
+    window.addEventListener('load', function() {
+        const userRole = localStorage.getItem('userRole');
+        const username = localStorage.getItem('username');
+        
+        if (userRole !== 'employer' || !username) {
+            alert('Access denied. Please login as an employer.');
+            window.location.href = 'login form.html';
+            return;
+        }
+        
+        // Load verification status
+        loadVerificationStatus();
+    });
+
+    // Upload Zone Handler
+    const uploadZone = document.getElementById('uploadZone');
+    const credentialUpload = document.getElementById('credentialUpload');
+
+    uploadZone.addEventListener('click', () => credentialUpload.click());
+    
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('drag-over');
+    });
+
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('drag-over');
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('drag-over');
+        handleFileUpload(e.dataTransfer.files[0]);
+    });
+
+    credentialUpload.addEventListener('change', (e) => {
+        handleFileUpload(e.target.files[0]);
+    });
+
+    function handleFileUpload(file) {
+        if (!file) return;
+
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        const validTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+
+        if (!validTypes.includes(file.type)) {
+            alert('Invalid file type. Please upload PDF, JPG, or PNG files only.');
+            return;
+        }
+
+        if (file.size > maxSize) {
+            alert('File is too large. Maximum size is 10MB.');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function() {
+            const fileData = {
+                fileName: file.name,
+                fileSize: (file.size / 1024 / 1024).toFixed(2),
+                uploadDate: new Date().toLocaleDateString(),
+                fileData: reader.result
+            };
+            // store credential per-user so admins can access it later
+            const currentUser = localStorage.getItem('username') || '';
+            if (currentUser) {
+                localStorage.setItem('employerCredential_' + currentUser, JSON.stringify(fileData));
+            } else {
+                // fallback to generic key if no username (shouldn't happen in normal flow)
+                localStorage.setItem('employerCredential', JSON.stringify(fileData));
+            }
+            displayUploadedFile(fileData);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function displayUploadedFile(fileData) {
+        const uploadedFiles = document.getElementById('uploadedFiles');
+        uploadedFiles.innerHTML = `
+            <div class="uploaded-file">
+                <div class="file-info">
+                    <i class="fas fa-file-check" style="color: #28a745; font-size: 18px;"></i>
+                    <div>
+                        <strong>${fileData.fileName}</strong>
+                        <br>
+                        <small class="text-muted">${fileData.fileSize} MB · Uploaded ${fileData.uploadDate}</small>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-danger" onclick="removeFile()">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+    }
+
+    function removeFile() {
+        const currentUser = localStorage.getItem('username') || '';
+        if (currentUser) localStorage.removeItem('employerCredential_' + currentUser);
+        else localStorage.removeItem('employerCredential');
+        document.getElementById('uploadedFiles').innerHTML = '';
+    }
+
+    function loadVerificationStatus() {
+        const currentUser = localStorage.getItem('username') || '';
+        const verification = JSON.parse(localStorage.getItem('employerVerification_' + currentUser) || 'null');
+        const statusSection = document.getElementById('statusSection');
+        const formSection = document.getElementById('formSection');
+        const approvalSection = document.getElementById('approvalSection');
+        const approvedSection = document.getElementById('approvedSection');
+        const rejectedSection = document.getElementById('rejectedSection');
+
+        if (!verification) {
+            // Load saved form data if exists
+            const savedData = JSON.parse(localStorage.getItem('employerFormData_' + localStorage.getItem('username')) || '{}');
+            document.getElementById('businessName').value = savedData.businessName || '';
+            document.getElementById('businessType').value = savedData.businessType || '';
+            document.getElementById('tinNumber').value = savedData.tinNumber || '';
+            document.getElementById('brelaNumber').value = savedData.brelaNumber || '';
+            document.getElementById('location').value = savedData.location || '';
+            document.getElementById('city').value = savedData.city || '';
+            document.getElementById('phone').value = savedData.phone || '';
+            document.getElementById('email').value = savedData.email || '';
+            document.getElementById('description').value = savedData.description || '';
+
+            const credential = JSON.parse(localStorage.getItem('employerCredential_' + currentUser) || localStorage.getItem('employerCredential') || 'null');
+            if (credential) {
+                displayUploadedFile(credential);
+            }
+
+            formSection.style.display = 'block';
+            approvalSection.style.display = 'none';
+            approvedSection.style.display = 'none';
+            rejectedSection.style.display = 'none';
+            return;
+        }
+
+        formSection.style.display = 'none';
+
+        if (verification.status === 'pending') {
+            statusSection.innerHTML = '<div class="status-badge status-pending"><i class="fas fa-hourglass-half"></i> Verification Pending</div>';
+            approvalSection.style.display = 'block';
+            approvedSection.style.display = 'none';
+            rejectedSection.style.display = 'none';
+        } else if (verification.status === 'approved') {
+            statusSection.innerHTML = '<div class="status-badge status-approved"><i class="fas fa-check-circle"></i> Verification Approved</div>';
+            approvalSection.style.display = 'none';
+            approvedSection.style.display = 'block';
+            rejectedSection.style.display = 'none';
+        } else if (verification.status === 'rejected') {
+            statusSection.innerHTML = '<div class="status-badge status-rejected"><i class="fas fa-times-circle"></i> Verification Rejected</div>';
+            approvalSection.style.display = 'none';
+            approvedSection.style.display = 'none';
+            rejectedSection.style.display = 'block';
+            document.getElementById('rejectionReason').textContent = verification.rejectionReason || 'Please resubmit with correct information.';
+        }
+    }
+
+    function editVerification() {
+        localStorage.removeItem('employerVerification_' + localStorage.getItem('username'));
+        location.reload();
+    }
+
+    // Form submission
+    document.getElementById('verificationForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const credential = JSON.parse(localStorage.getItem('employerCredential_' + (localStorage.getItem('username') || '')) || localStorage.getItem('employerCredential') || 'null');
+        if (!credential) {
+            alert('Please upload business credentials before submitting.');
+            return;
+        }
+
+        const formData = {
+            businessName: document.getElementById('businessName').value,
+            businessType: document.getElementById('businessType').value,
+            tinNumber: document.getElementById('tinNumber').value,
+            brelaNumber: document.getElementById('brelaNumber').value,
+            location: document.getElementById('location').value,
+            city: document.getElementById('city').value,
+            phone: document.getElementById('phone').value,
+            email: document.getElementById('email').value,
+            description: document.getElementById('description').value
+        };
+
+        // Save form data
+        localStorage.setItem('employerFormData_' + localStorage.getItem('username'), JSON.stringify(formData));
+
+        // Create verification request
+        const usernameKey = localStorage.getItem('username') || '';
+        const verificationRequest = {
+            username: usernameKey,
+            ...formData,
+            brelaNumber: formData.brelaNumber || '',
+            credential: credential, // include fileName and fileData (data URL)
+            submissionDate: new Date().toLocaleDateString(),
+            status: 'pending'
+        };
+
+        localStorage.setItem('employerVerification_' + localStorage.getItem('username'), JSON.stringify(verificationRequest));
+
+        // Add to pending verifications list
+        const pendingVerifications = JSON.parse(localStorage.getItem('adminPendingVerifications') || '[]');
+        pendingVerifications.push(verificationRequest);
+        localStorage.setItem('adminPendingVerifications', JSON.stringify(pendingVerifications));
+
+        alert('Your business information has been submitted for verification. Our verification team will review it within 2-3 business days.');
+        loadVerificationStatus();
+    });
+
+    // Logout handler
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+        if (confirm('Are you sure you want to logout?')) {
+            localStorage.removeItem('userRole');
+            localStorage.removeItem('username');
+            window.location.href = 'login form.html';
+        }
+    });
+</script>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

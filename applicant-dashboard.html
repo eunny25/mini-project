@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Applicant Dashboard</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .navbar {
+            background-color: #007bff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .navbar-brand {
+            font-weight: bold;
+            color: white !important;
+        }
+        .sidebar {
+            background-color: white;
+            border-right: 1px solid #e9ecef;
+            padding: 20px 0;
+            min-height: 100vh;
+        }
+        .sidebar .nav-link {
+            color: #333;
+            padding: 10px 20px;
+            border-left: 4px solid transparent;
+            transition: all 0.3s;
+        }
+        .sidebar .nav-link:hover {
+            background-color: #f8f9fa;
+            border-left-color: #007bff;
+        }
+        .sidebar .nav-link.active {
+            background-color: #e7f1ff;
+            border-left-color: #007bff;
+            color: #007bff;
+            font-weight: bold;
+        }
+        .main-content {
+            padding: 30px;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            font-weight: bold;
+        }
+        .upload-zone {
+            border: 2px dashed #007bff;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            background-color: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .upload-zone:hover {
+            background-color: #e7f1ff;
+            border-color: #0056b3;
+        }
+        .upload-zone.drag-over {
+            background-color: #e7f1ff;
+            border-color: #0056b3;
+        }
+        .internship-card {
+            border-left: 4px solid #007bff;
+            transition: transform 0.2s;
+        }
+        .internship-card:hover {
+            transform: translateY(-5px);
+        }
+        .badge-status {
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        .badge-applied {
+            background-color: #28a745;
+            color: white;
+        }
+        .badge-rejected {
+            background-color: #dc3545;
+            color: white;
+        }
+        .badge-pending {
+            background-color: #ffc107;
+            color: #333;
+        }
+        .resume-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .section-title {
+            color: #007bff;
+            font-weight: bold;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+    .profile-avatar {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 60px;
+        font-weight: bold;
+        color: white;
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+        margin: 0 auto;
+    }
+    </style>
+</head>
+<body>
+
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-light">
+    <div class="container-fluid">
+        <span class="navbar-brand">
+            <i class="fas fa-briefcase"></i> Internship Portal - Applicant Dashboard
+        </span>
+        <div class="ml-auto">
+            <span class="text-white mr-3">Welcome, <strong id="applicantName">User</strong></span>
+            <button id="notifBtn" class="btn btn-sm btn-light mr-2" title="Notifications">
+                <i class="fas fa-bell"></i> <span id="notifCount" class="badge badge-danger" style="position:relative;top:-2px;">0</span>
+            </button>
+            <div id="notifDropdown" style="display:none; position:absolute; right:20px; top:56px; width:320px; z-index:2000;"></div>
+            <button class="btn btn-sm btn-light" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar Navigation -->
+        <div class="col-md-3">
+            <div class="sidebar">
+                <nav class="nav flex-column">
+                    <a class="nav-link active" href="#" data-section="profile">
+                        <i class="fas fa-user-circle"></i> My Profile
+                    </a>
+                    <a class="nav-link" href="#" data-section="resume">
+                        <i class="fas fa-file-pdf"></i> Resume Upload
+                    </a>
+                    <a class="nav-link" href="#" data-section="opportunities">
+                        <i class="fas fa-briefcase"></i> Internship Opportunities
+                    </a>
+                    <a class="nav-link" href="#" data-section="applications">
+                        <i class="fas fa-tasks"></i> My Applications
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <div class="main-content">
+
+                <!-- Profile Section -->
+                <section id="profile-section" class="content-section">
+                    <h2 class="section-title">My Profile</h2>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3 text-center">
+                                    <div id="profileAvatar" class="profile-avatar">-</div>
+                                </div>
+                                <div class="col-md-9">
+                                    <h4 id="profileUsername">Username</h4>
+                                    <p class="text-muted">Applicant</p>
+                                    <form id="profileForm">
+                                        <div class="form-group">
+                                            <label for="fullName">Full Name</label>
+                                            <input type="text" class="form-control" id="fullName" placeholder="Enter your full name">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="email">Email</label>
+                                            <input type="email" class="form-control" id="email" placeholder="Enter your email">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="phone">Phone Number</label>
+                                            <input type="tel" class="form-control" id="phone" placeholder="Enter your phone number">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="bio">Bio</label>
+                                            <textarea class="form-control" id="bio" rows="3" placeholder="Tell employers about yourself"></textarea>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-save"></i> Save Profile
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Resume Upload Section -->
+                <section id="resume-section" class="content-section" style="display:none;">
+                    <h2 class="section-title">Resume Upload</h2>
+                    <div class="card">
+                        <div class="card-body">
+                            <p class="text-muted">Upload your resume so employers can review your qualifications.</p>
+                            <div class="upload-zone" id="uploadZone">
+                                <i class="fas fa-cloud-upload-alt" style="font-size: 40px; color: #007bff; margin-bottom: 15px;"></i>
+                                <p><strong>Click to upload or drag and drop</strong></p>
+                                <p class="text-muted small">PDF, DOC, DOCX (Max 10MB)</p>
+                                <input type="file" id="resumeInput" style="display:none;" accept=".pdf,.doc,.docx">
+                            </div>
+                            <div class="resume-section" style="margin-top: 30px;">
+                                <h5><i class="fas fa-file"></i> Uploaded Resume</h5>
+                                <div id="resumeStatus">
+                                    <p class="text-muted">No resume uploaded yet.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Internship Opportunities Section -->
+                <section id="opportunities-section" class="content-section" style="display:none;">
+                    <h2 class="section-title">Internship Opportunities</h2>
+                    <div id="opportunitiesContainer">
+                        <!-- Opportunities will be dynamically loaded here -->
+                    </div>
+                </section>
+
+                <!-- Applications Tracking Section -->
+                <section id="applications-section" class="content-section" style="display:none;">
+                    <h2 class="section-title">My Applications</h2>
+                    <div class="card">
+                        <div class="card-body">
+                            <div id="applicationsContainer">
+                                <p class="text-muted">You haven't applied for any internships yet.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Check if user is logged in as applicant
+    window.addEventListener('load', function() {
+        const userRole = localStorage.getItem('userRole');
+        const username = localStorage.getItem('username');
+        
+        if (userRole !== 'applicant' || !username) {
+            alert('Access denied. Please login as an applicant.');
+            window.location.href = 'login form.html';
+            return;
+        }
+        
+        document.getElementById('applicantName').textContent = username;
+        document.getElementById('profileUsername').textContent = username;
+        
+        // Load stored profile data
+        loadProfileData();
+        // Load notifications
+        loadNotifications();
+        // Load internship opportunities
+        loadInternships();
+        // Load applications
+        loadApplications();
+    });
+
+    // Navigation between sections
+    document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const section = this.getAttribute('data-section');
+            
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(s => {
+                s.style.display = 'none';
+            });
+            
+            // Show selected section
+            document.getElementById(section + '-section').style.display = 'block';
+            
+            // Update active nav link
+            document.querySelectorAll('.sidebar .nav-link').forEach(l => {
+                l.classList.remove('active');
+            });
+            this.classList.add('active');
+        });
+    });
+
+    // Resume Upload Handler
+    const uploadZone = document.getElementById('uploadZone');
+    const resumeInput = document.getElementById('resumeInput');
+
+    uploadZone.addEventListener('click', () => resumeInput.click());
+    
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('drag-over');
+    });
+
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('drag-over');
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('drag-over');
+        handleFileUpload(e.dataTransfer.files[0]);
+    });
+
+    resumeInput.addEventListener('change', (e) => {
+        handleFileUpload(e.target.files[0]);
+    });
+
+    function handleFileUpload(file) {
+        if (!file) return;
+
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+
+        if (!validTypes.includes(file.type)) {
+            alert('Invalid file type. Please upload PDF or DOC/DOCX files only.');
+            return;
+        }
+
+        if (file.size > maxSize) {
+            alert('File is too large. Maximum size is 5MB.');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function() {
+            const resumeData = {
+                fileName: file.name,
+                fileSize: (file.size / 1024).toFixed(2),
+                uploadDate: new Date().toLocaleDateString(),
+                fileData: reader.result
+            };
+            
+            localStorage.setItem('userResume', JSON.stringify(resumeData));
+            displayResumeStatus(resumeData);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function displayResumeStatus(resumeData) {
+        const resumeStatus = document.getElementById('resumeStatus');
+        resumeStatus.innerHTML = `
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i> Resume uploaded successfully!
+            </div>
+            <table class="table table-sm">
+                <tr>
+                    <td><strong>File Name:</strong></td>
+                    <td>${resumeData.fileName}</td>
+                </tr>
+                <tr>
+                    <td><strong>File Size:</strong></td>
+                    <td>${resumeData.fileSize} KB</td>
+                </tr>
+                <tr>
+                    <td><strong>Upload Date:</strong></td>
+                    <td>${resumeData.uploadDate}</td>
+                </tr>
+            </table>
+            <button class="btn btn-sm btn-info" onclick="downloadResume()">
+                <i class="fas fa-download"></i> Download Resume
+            </button>
+            <button class="btn btn-sm btn-danger" onclick="deleteResume()">
+                <i class="fas fa-trash"></i> Delete Resume
+            </button>
+        `;
+    }
+
+    function loadProfileData() {
+        const profileData = JSON.parse(localStorage.getItem('userProfile') || '{}');
+        document.getElementById('fullName').value = profileData.fullName || '';
+        document.getElementById('email').value = profileData.email || '';
+        document.getElementById('phone').value = profileData.phone || '';
+        document.getElementById('bio').value = profileData.bio || '';
+
+    // Display avatar with first letter of first name
+    const fullName = profileData.fullName || '';
+    const firstLetter = fullName.charAt(0).toUpperCase() || 'A';
+    document.getElementById('profileAvatar').textContent = firstLetter;
+
+        const resumeData = JSON.parse(localStorage.getItem('userResume') || 'null');
+        if (resumeData) {
+            displayResumeStatus(resumeData);
+        }
+    }
+
+    document.getElementById('profileForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const profileData = {
+            fullName: document.getElementById('fullName').value,
+            email: document.getElementById('email').value,
+            phone: document.getElementById('phone').value,
+            bio: document.getElementById('bio').value
+        };
+        
+        localStorage.setItem('userProfile', JSON.stringify(profileData));
+        
+            // Update avatar with first letter
+            const firstLetter = profileData.fullName.charAt(0).toUpperCase() || 'A';
+            document.getElementById('profileAvatar').textContent = firstLetter;
+        
+        alert('Profile saved successfully!');
+    });
+
+    // Sample internship data (built-in). Additional internships can be posted by employers and stored in `globalInternships`.
+    const internships = [
+        {
+            id: 1,
+            title: 'Frontend Developer Intern',
+            company: 'Tech Solutions Inc',
+            location: 'Remote',
+            duration: '3 months',
+            stipend: '$500/month',
+            description: 'Work on modern web applications using React and Vue.js',
+            deadline: '2026-02-28'
+        },
+        {
+            id: 2,
+            title: 'Backend Developer Intern',
+            company: 'Cloud Systems Ltd',
+            location: 'New York, NY',
+            duration: '6 months',
+            stipend: '$700/month',
+            description: 'Develop RESTful APIs and database solutions using Node.js and MongoDB',
+            deadline: '2026-02-15'
+        },
+        {
+            id: 3,
+            title: 'Data Science Intern',
+            company: 'Analytics Pro',
+            location: 'Remote',
+            duration: '3 months',
+            stipend: '$600/month',
+            description: 'Analyze large datasets and build predictive models using Python',
+            deadline: '2026-03-10'
+        },
+        {
+            id: 4,
+            title: 'UX/UI Designer Intern',
+            company: 'Design Studio Co',
+            location: 'San Francisco, CA',
+            duration: '4 months',
+            stipend: '$550/month',
+            description: 'Create engaging user interfaces and conduct user research',
+            deadline: '2026-02-20'
+        }
+    ];
+
+    function loadInternships() {
+        const container = document.getElementById('opportunitiesContainer');
+        const appliedInternships = JSON.parse(localStorage.getItem('appliedInternships') || '[]');
+        // load employer-posted internships from localStorage
+        const posted = JSON.parse(localStorage.getItem('globalInternships') || '[]');
+        const all = posted.concat(internships);
+        
+        container.innerHTML = all.map(internship => `
+            <div class="card internship-card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h5 class="card-title">${internship.title}</h5>
+                            <p class="text-primary"><strong>${internship.company}</strong></p>
+                            <p class="text-muted">
+                                <i class="fas fa-map-marker-alt"></i> ${internship.location} | 
+                                <i class="fas fa-clock"></i> ${internship.duration} | 
+                                <i class="fas fa-money-bill"></i> ${internship.stipend}
+                            </p>
+                            <p>${internship.description}</p>
+                            <small class="text-muted">Application Deadline: <strong>${internship.deadline}</strong></small>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            ${appliedInternships.includes(internship.id) ? 
+                                '<span class="badge badge-status badge-applied"><i class="fas fa-check"></i> Applied</span>' :
+                                `<button class="btn btn-primary btn-sm" onclick="applyForInternship(${internship.id}, '${internship.title}')">
+                                    <i class="fas fa-paper-plane"></i> Apply Now
+                                </button>`
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function applyForInternship(internshipId, internshipTitle) {
+        const resumeData = JSON.parse(localStorage.getItem('userResume') || 'null');
+        const applicantUsername = localStorage.getItem('username') || 'applicant';
+        
+        if (!resumeData) {
+            alert('Please upload your resume before applying for internships.');
+            return;
+        }
+
+        const appliedInternships = JSON.parse(localStorage.getItem('appliedInternships') || '[]');
+        
+        if (!appliedInternships.includes(internshipId)) {
+            appliedInternships.push(internshipId);
+            localStorage.setItem('appliedInternships', JSON.stringify(appliedInternships));
+            
+            const applications = JSON.parse(localStorage.getItem('applications') || '[]');
+            applications.push({
+                id: Date.now(),
+                internshipId: internshipId,
+                internshipTitle: internshipTitle,
+                applicantUsername: applicantUsername,
+                resumeFileName: resumeData.fileName || null,
+                applicationDate: new Date().toLocaleDateString(),
+                status: 'pending'
+            });
+            localStorage.setItem('applications', JSON.stringify(applications));
+            
+            alert('Application submitted successfully!');
+            loadInternships();
+            loadApplications();
+        }
+    }
+
+    function loadApplications() {
+        const container = document.getElementById('applicationsContainer');
+        const applications = JSON.parse(localStorage.getItem('applications') || '[]');
+        
+        if (applications.length === 0) {
+            container.innerHTML = '<p class="text-muted">You haven\'t applied for any internships yet.</p>';
+            return;
+        }
+        container.innerHTML = `
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Internship Title</th>
+                        <th>Application Date</th>
+                        <th>Status</th>
+                        <th>Message</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${applications.map(app => `
+                        <tr>
+                            <td>${app.internshipTitle}</td>
+                            <td>${app.applicationDate}</td>
+                            <td>
+                                <span class="badge badge-status ${
+                                    app.status === 'applied' ? 'badge-applied' :
+                                    app.status === 'rejected' ? 'badge-rejected' :
+                                    'badge-pending'
+                                }">
+                                    ${app.status.charAt(0).toUpperCase() + app.status.slice(1)}
+                                </span>
+                            </td>
+                            <td>${app.decisionMessage || ''}</td>
+                            <td>
+                                <button class="btn btn-sm btn-danger" onclick="withdrawApplication(${app.id})">
+                                    <i class="fas fa-times"></i> Withdraw
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    }
+
+    // Notifications logic
+    function loadNotifications() {
+        const key = 'notifications_' + (localStorage.getItem('username') || '');
+        const notes = JSON.parse(localStorage.getItem(key) || '[]');
+        const unreadCount = notes.filter(n => !n.read).length;
+        document.getElementById('notifCount').textContent = unreadCount;
+        const dropdown = document.getElementById('notifDropdown');
+        if (!notes || notes.length === 0) {
+            dropdown.innerHTML = '<div class="card p-3"><p class="text-muted mb-0">No notifications</p></div>';
+            return;
+        }
+
+        dropdown.innerHTML = '<div class="card"><div class="card-body" style="max-height:320px;overflow:auto;padding:8px;">' + notes.map(n => `
+            <div style="border-bottom:1px solid #eee;padding:8px;display:flex;justify-content:space-between;align-items:flex-start;">
+                <div style="flex:1;">
+                    <div style="font-weight:${n.read ? 600 : 800};">${n.type === 'accepted' ? 'Accepted' : (n.type === 'rejected' ? 'Update' : 'Update')}</div>
+                    <div class="text-muted small">${n.internshipTitle} · ${n.date}</div>
+                    <div style="margin-top:6px;">${n.message}</div>
+                </div>
+                <div style="margin-left:8px;white-space:nowrap;">
+                    ${n.read ? '' : `<button class="btn btn-sm btn-outline-primary" onclick="markNotificationRead(${n.id})">Mark read</button>`}
+                </div>
+            </div>
+        `).join('') + '</div><div class="card-footer text-right"><button class="btn btn-sm btn-link" onclick="clearNotifications()">Clear</button></div></div>';
+    }
+
+    function toggleNotifications() {
+        const dd = document.getElementById('notifDropdown');
+        const isHidden = (dd.style.display === 'none' || dd.style.display === '');
+        if (isHidden) {
+            // Mark all as read when opening
+            markAllNotificationsRead();
+            dd.style.display = 'block';
+        } else {
+            dd.style.display = 'none';
+        }
+    }
+
+    function markNotificationRead(id) {
+        const key = 'notifications_' + (localStorage.getItem('username') || '');
+        const notes = JSON.parse(localStorage.getItem(key) || '[]');
+        const idx = notes.findIndex(n => n.id === id);
+        if (idx !== -1) {
+            notes[idx].read = true;
+            localStorage.setItem(key, JSON.stringify(notes));
+            loadNotifications();
+        }
+    }
+
+    function markAllNotificationsRead() {
+        const key = 'notifications_' + (localStorage.getItem('username') || '');
+        const notes = JSON.parse(localStorage.getItem(key) || '[]');
+        if (!notes || notes.length === 0) return;
+        let changed = false;
+        for (let n of notes) {
+            if (!n.read) { n.read = true; changed = true; }
+        }
+        if (changed) {
+            localStorage.setItem(key, JSON.stringify(notes));
+        }
+        loadNotifications();
+    }
+
+    function clearNotifications() {
+        const key = 'notifications_' + (localStorage.getItem('username') || '');
+        localStorage.removeItem(key);
+        loadNotifications();
+    }
+
+    document.getElementById('notifBtn').addEventListener('click', toggleNotifications);
+
+    function withdrawApplication(applicationId) {
+        if (confirm('Are you sure you want to withdraw this application?')) {
+            let applications = JSON.parse(localStorage.getItem('applications') || '[]');
+            applications = applications.filter(app => app.id !== applicationId);
+            localStorage.setItem('applications', JSON.stringify(applications));
+            
+            loadApplications();
+            loadInternships();
+            alert('Application withdrawn successfully!');
+        }
+    }
+
+    function downloadResume() {
+        const resumeData = JSON.parse(localStorage.getItem('userResume') || 'null');
+        if (resumeData) {
+            const link = document.createElement('a');
+            link.href = resumeData.fileData;
+            link.download = resumeData.fileName;
+            link.click();
+        }
+    }
+
+    function deleteResume() {
+        if (confirm('Are you sure you want to delete your resume?')) {
+            localStorage.removeItem('userResume');
+            document.getElementById('resumeStatus').innerHTML = '<p class="text-muted">No resume uploaded yet.</p>';
+            alert('Resume deleted successfully!');
+        }
+    }
+
+    // Logout handler
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+        if (confirm('Are you sure you want to logout?')) {
+            localStorage.removeItem('userRole');
+            localStorage.removeItem('username');
+            window.location.href = 'login form.html';
+        }
+    });
+</script>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

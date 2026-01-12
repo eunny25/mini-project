@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login & Register</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            margin-top: 100px;
+        }
+        .form-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="form-container">
+        <h2 class="text-center">Login</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" class="form-control" id="username" required>
+            </div>
+            <div class="form-group">
+                <label for="loginEmail">Email</label>
+                <input type="email" class="form-control" id="loginEmail" required placeholder="you@example.com">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" class="form-control" id="password" required>
+            </div>
+            <div class="form-group">
+                <label for="loginRole">Select Role</label>
+                <select class="form-control" id="loginRole" required>
+                    <option value="">-- Choose role --</option>
+                    <option value="applicant">Applicant</option>
+                    <option value="employer">Employer</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Login</button>
+            <p class="text-center mt-3">Don't have an account? <a href="#" id="showRegister">Register here</a></p>
+        </form>
+    </div>
+
+        <div class="form-container" style="display:none;" id="registerContainer">
+        <h2 class="text-center">Register</h2>
+        <div class="alert alert-info" role="alert">
+            <strong>Registration instructions:</strong> Pick a unique username (min 4 characters), provide a valid email, and choose a secure password (min 6 characters). System administrator accounts are managed internally and are not available for public registration.
+        </div>
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="regUsername">Username</label>
+                <input type="text" class="form-control" id="regUsername" required minlength="4" placeholder="At least 4 characters">
+            </div>
+            <div class="form-group">
+                <label for="regEmail">Email</label>
+                <input type="email" class="form-control" id="regEmail" required placeholder="you@example.com">
+            </div>
+            <div class="form-group">
+                <label for="regPassword">Password</label>
+                <input type="password" class="form-control" id="regPassword" required minlength="6" placeholder="At least 6 characters">
+            </div>
+            <div class="form-group">
+                <label for="regRole">Select Role</label>
+                <select class="form-control" id="regRole" required>
+                    <option value="">-- Choose role --</option>
+                    <option value="applicant">Applicant</option>
+                    <option value="employer">Employer</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-success btn-block">Register</button>
+            <p class="text-center mt-3">Already have an account? <a href="#" id="showLogin">Login here</a></p>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Auto-register admin on first load
+    function initializeAdminUser() {
+        const adminUsername = 'Eunice Edwin';
+        const adminKey = 'userRegistration_' + adminUsername;
+        
+        // Check if admin already exists
+        if (!localStorage.getItem(adminKey)) {
+            // Hash the password (simple hashing - in production use proper bcrypt)
+            const password = 'eunny@#25';
+            const hashedPassword = btoa(password); // Base64 encoding for storage
+            
+            // Create admin registration data
+            const adminData = {
+                username: adminUsername,
+                email: 'eune.2502@gmail.com',
+                password: password, // Store plain for localStorage demo
+                role: 'admin',
+                registrationDate: new Date().toLocaleString(),
+                createdAt: new Date().toLocaleString(),
+                updatedAt: new Date().toLocaleString(),
+                lastActive: new Date().toLocaleString(),
+                hashedPassword: hashedPassword
+            };
+            
+            // Store admin registration
+            localStorage.setItem(adminKey, JSON.stringify(adminData));
+            localStorage.setItem('registeredRole_' + adminUsername, 'admin');
+            
+            // Also store as default admin credentials for quick access
+            localStorage.setItem('adminUser', adminUsername);
+            localStorage.setItem('adminPassword', password);
+            localStorage.setItem('adminEmail', 'eune.2502@gmail.com');
+            
+            // Create admin profile
+            const adminProfile = {
+                fullName: 'Eunice Edwin',
+                email: 'eune.2502@gmail.com',
+                phone: '',
+                bio: 'System Administrator',
+                role: 'admin'
+            };
+            localStorage.setItem('userProfile_' + adminUsername, JSON.stringify(adminProfile));
+            
+            console.log('✓ Admin user registered successfully');
+            console.log('Admin Username: ' + adminUsername);
+            console.log('Admin Email: eune.2502@gmail.com');
+            console.log('Password: eunny@#25');
+        }
+    }
+
+    // Initialize on page load
+    window.addEventListener('load', initializeAdminUser);
+
+    document.getElementById('showRegister').onclick = function() {
+        document.getElementById('loginForm').parentElement.style.display = 'none';
+        document.getElementById('registerContainer').style.display = 'block';
+    };
+
+    document.getElementById('showLogin').onclick = function() {
+        document.getElementById('registerContainer').style.display = 'none';
+        document.getElementById('loginForm').parentElement.style.display = 'block';
+    };
+
+    document.getElementById('loginForm').onsubmit = function(e) {
+        e.preventDefault();
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        const selectedRole = document.getElementById('loginRole').value;
+
+        if (!selectedRole) {
+            alert('Please select a role.');
+            return;
+        }
+
+        // Check if trying to login as admin
+        if (selectedRole === 'admin') {
+            // Admin credentials validation
+            const adminUser = localStorage.getItem('adminUser');
+            const adminPassword = localStorage.getItem('adminPassword');
+            
+            // Default admin credentials (can be changed by system)
+            const defaultAdminUsername = 'admin';
+            const defaultAdminPassword = 'admin123';
+            
+            const storedAdminUsername = adminUser || defaultAdminUsername;
+            const storedAdminPassword = adminPassword || defaultAdminPassword;
+            
+            if (username !== storedAdminUsername || password !== storedAdminPassword) {
+                pushSecurityAlert({
+                    id: Date.now(),
+                    type: 'admin_login_failure',
+                    username: username,
+                    date: new Date().toLocaleString(),
+                    message: `Failed admin login attempt by user: ${username}`
+                });
+                alert('Invalid admin credentials. Only administrators can access this role.');
+                return;
+            }
+            
+            // Successful admin login
+            localStorage.removeItem('failedLogin_' + username);
+            localStorage.setItem('pendingOTPUser', username);
+            localStorage.setItem('pendingOTPRole', 'admin');
+            
+            generateAndSendOTP(username);
+            window.location.href = 'otp-verify.html';
+            return;
+        }
+
+        // Regular user (applicant/employer) login
+        const regStr = localStorage.getItem('userRegistration_' + username);
+
+        function pushSecurityAlert(obj) {
+            const key = 'securityAlerts';
+            const alerts = JSON.parse(localStorage.getItem(key) || '[]');
+            alerts.unshift(obj);
+            localStorage.setItem(key, JSON.stringify(alerts));
+        }
+
+        if (!regStr) {
+            // Unknown username attempt — log alert for security team
+            pushSecurityAlert({
+                id: Date.now(),
+                type: 'unknown_user',
+                username: username,
+                date: new Date().toLocaleString(),
+                message: 'Login attempt for unregistered username.'
+            });
+            alert('No account found for this username. Please register. Our security team has been notified of this attempt.');
+            return;
+        }
+
+        const reg = JSON.parse(regStr);
+        
+        // Check if selected role matches registered role
+        const registeredRole = localStorage.getItem('registeredRole_' + username) || reg.role || 'applicant';
+        if (selectedRole !== registeredRole) {
+            pushSecurityAlert({
+                id: Date.now(),
+                type: 'role_mismatch',
+                username: username,
+                date: new Date().toLocaleString(),
+                message: `Login attempted with mismatched role. Registered: ${registeredRole}, Selected: ${selectedRole}`
+            });
+            alert(`Your account is registered as a ${registeredRole}. Please select the correct role to login.`);
+            return;
+        }
+        
+        if (reg.password !== password) {
+            // Wrong password — increment counter and notify security team
+            const failKey = 'failedLogin_' + username;
+            const fails = parseInt(localStorage.getItem(failKey) || '0') + 1;
+            localStorage.setItem(failKey, String(fails));
+
+            pushSecurityAlert({
+                id: Date.now(),
+                type: 'wrong_password',
+                username: username,
+                date: new Date().toLocaleString(),
+                message: `Wrong password attempt (#${fails}).`
+            });
+
+            if (fails >= 3) {
+                pushSecurityAlert({
+                    id: Date.now() + 1,
+                    type: 'suspicious_activity',
+                    username: username,
+                    date: new Date().toLocaleString(),
+                    message: `Multiple failed login attempts (${fails}) for account ${username}. Possible brute-force or scam.`
+                });
+            }
+
+            alert('Incorrect password. After multiple failed attempts our security team will be notified.');
+            return;
+        }
+
+        // Successful login: clear failed attempts counter
+        localStorage.removeItem('failedLogin_' + username);
+
+        // Initiate OTP flow: store pending user and role, generate OTP and redirect to OTP verification page
+        const determinedRole = selectedRole;
+        localStorage.setItem('pendingOTPUser', username);
+        localStorage.setItem('pendingOTPRole', determinedRole);
+
+        // generate and send OTP (simulated)
+        generateAndSendOTP(username);
+
+        // redirect to verification page
+        window.location.href = 'otp-verify.html';
+    };
+
+
+    // Helper: try to derive an email for demo send (uses profile email if available)
+    function getEmailForUser(username) {
+        try {
+            const p = JSON.parse(localStorage.getItem('userProfile_' + username) || localStorage.getItem('userProfile') || 'null');
+            if (p && p.email) return p.email;
+        } catch(e) {}
+        return username + '@example.com';
+    }
+
+    function generateAndSendOTP(username, ttlMinutes = 5) {
+        const code = Math.floor(100000 + Math.random() * 900000); // 6-digit
+        const otpObj = {
+            id: Date.now(),
+            code: String(code),
+            expiresAt: Date.now() + ttlMinutes * 60 * 1000,
+            attempts: 0,
+            resendCount: 0
+        };
+        localStorage.setItem('otp_' + username, JSON.stringify(otpObj));
+
+        // Simulate sending by alert (in a real system you'd call backend/email service)
+        const email = getEmailForUser(username);
+        alert('OTP sent to ' + email + '\n(For demo purposes the code is: ' + code + ')');
+
+        // log as security event
+        const key = 'securityAlerts';
+        const alerts = JSON.parse(localStorage.getItem(key) || '[]');
+        alerts.unshift({ id: Date.now(), type: 'otp_sent', username: username, date: new Date().toLocaleString(), message: 'OTP generated and (simulated) sent to ' + email });
+        localStorage.setItem(key, JSON.stringify(alerts));
+    }
+    document.getElementById('registerForm').onsubmit = function(e) {
+        e.preventDefault();
+        const username = document.getElementById('regUsername').value;
+        const email = document.getElementById('regEmail').value.trim();
+        const password = document.getElementById('regPassword').value;
+        const role = document.getElementById('regRole').value;
+        
+        if (!role) {
+            alert('Please select a role.');
+            return;
+        }
+        
+        // Store registration data
+        const registrationData = {
+            username: username,
+            email: email,
+            password: password,
+            role: role,
+            registrationDate: new Date().toLocaleDateString()
+        };
+
+        localStorage.setItem('registeredRole_' + username, role);
+        localStorage.setItem('userRegistration_' + username, JSON.stringify(registrationData));
+
+        // Auto-login: set current session and redirect to role dashboard
+        localStorage.setItem('username', username);
+        localStorage.setItem('userRole', role);
+
+        // Reset form
+        document.getElementById('registerForm').reset();
+
+        // Redirect immediately to appropriate dashboard
+        if (role === 'employer') {
+            // Newly-registered employers must complete verification first
+            window.location.href = 'employer-verification.html';
+        } else {
+            // default to applicant
+            window.location.href = 'applicant-dashboard.html';
+        }
+    };
+</script>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

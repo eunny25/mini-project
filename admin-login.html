@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #031b86 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .admin-login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+        }
+        .admin-login-container h2 {
+            color: #ea66af;
+            font-weight: bold;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .admin-icon {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .admin-icon svg {
+            width: 50px;
+            height: 50px;
+            color: #667eea;
+        }
+        .form-group label {
+            color: #333;
+            font-weight: 500;
+        }
+        .btn-admin-login {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .btn-admin-login:hover {
+            background: #764ba2;
+            color: white;
+        }
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .back-link a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+        .alert {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="admin-login-container">
+    <div class="admin-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm.5 4.5a.5.5 0 0 0-.5.5v.006c0 .337.02.646.054.904.146.889.487 1.710 1.07 2.499.711.978 1.713 1.591 2.876 1.591 1.163 0 2.165-.613 2.876-1.591.583-.789.924-1.610 1.07-2.499.034-.258.054-.567.054-.904V13.5a.5.5 0 0 0-1 0v.006c0 .18-.013.359-.040.636-.146.89-.487 1.710-1.07 2.499-.71.978-1.713 1.591-2.876 1.591-1.163 0-2.165-.613-2.876-1.591-.583-.789-.924-1.61-1.07-2.499-.027-.277-.04-.456-.04-.636V13a.5.5 0 0 0-.5-.5Z"></path>
+        </svg>
+    </div>
+
+    <h2>Admin Portal</h2>
+    
+    <div id="alertMessage" class="alert" role="alert"></div>
+
+    <form id="adminLoginForm">
+        <div class="form-group">
+            <label for="adminUsername">Username</label>
+            <input type="text" class="form-control" id="adminUsername" required placeholder="Enter admin username">
+        </div>
+
+        <div class="form-group">
+            <label for="adminEmail">Email</label>
+            <input type="email" class="form-control" id="adminEmail" required placeholder="Enter admin email">
+        </div>
+
+        <div class="form-group">
+            <label for="adminPassword">Password</label>
+            <input type="password" class="form-control" id="adminPassword" required placeholder="Enter admin password">
+        </div>
+
+        <button type="submit" class="btn btn-admin-login btn-block">Login as Admin</button>
+    </form>
+
+    <div class="back-link">
+        <a href="login form.html">← Back to User Login</a>
+    </div>
+</div>
+
+<script>
+    // Initialize admin on page load
+    function initializeAdminUser() {
+        const adminUsername = 'Eunice Edwin';
+        const adminKey = 'userRegistration_' + adminUsername;
+        
+        if (!localStorage.getItem(adminKey)) {
+            const password = 'eunny@#25';
+            const adminData = {
+                username: adminUsername,
+                email: 'eune.2502@gmail.com',
+                password: password,
+                role: 'admin',
+                registrationDate: new Date().toLocaleString(),
+                createdAt: new Date().toLocaleString(),
+                updatedAt: new Date().toLocaleString(),
+                lastActive: new Date().toLocaleString()
+            };
+            
+            localStorage.setItem(adminKey, JSON.stringify(adminData));
+            localStorage.setItem('registeredRole_' + adminUsername, 'admin');
+            localStorage.setItem('adminUser', adminUsername);
+            localStorage.setItem('adminPassword', password);
+            localStorage.setItem('adminEmail', 'eune.2502@gmail.com');
+            localStorage.setItem('adminPhone', '0678154511');
+            
+            const adminProfile = {
+                fullName: 'Eunice Edwin',
+                email: 'eune.2502@gmail.com',
+                phone: '0678154511',
+                bio: 'System Administrator',
+                role: 'admin'
+            };
+            localStorage.setItem('userProfile_' + adminUsername, JSON.stringify(adminProfile));
+        }
+    }
+
+    window.addEventListener('load', initializeAdminUser);
+
+    document.getElementById('adminLoginForm').onsubmit = function(e) {
+        e.preventDefault();
+        
+        const username = document.getElementById('adminUsername').value.trim();
+        const email = document.getElementById('adminEmail').value.trim();
+        const password = document.getElementById('adminPassword').value;
+        
+        // Get stored admin credentials
+        const storedAdminUsername = localStorage.getItem('adminUser') || 'Eunice Edwin';
+        const storedAdminEmail = localStorage.getItem('adminEmail') || 'eune.2502@gmail.com';
+        const storedAdminPassword = localStorage.getItem('adminPassword') || 'eunny@#25';
+        
+        // Validate credentials
+        if (username !== storedAdminUsername || email !== storedAdminEmail || password !== storedAdminPassword) {
+            showAlert('Invalid admin credentials. Access denied.', 'danger');
+            
+            // Log failed attempt
+            const alerts = JSON.parse(localStorage.getItem('securityAlerts') || '[]');
+            alerts.unshift({
+                id: Date.now(),
+                type: 'admin_login_failure',
+                username: username,
+                email: email,
+                date: new Date().toLocaleString(),
+                message: `Failed admin login attempt by: ${username} (${email})`
+            });
+            localStorage.setItem('securityAlerts', JSON.stringify(alerts));
+            return;
+        }
+        
+        // Successful admin login
+        localStorage.setItem('pendingOTPUser', username);
+        localStorage.setItem('pendingOTPRole', 'admin');
+        
+        // Generate and send OTP
+        generateAndSendOTP(username, email);
+        
+        showAlert('OTP sent to ' + email + '. Redirecting...', 'success');
+        
+        setTimeout(() => {
+            window.location.href = 'otp-verify.html';
+        }, 2000);
+    };
+
+    function showAlert(message, type) {
+        const alertDiv = document.getElementById('alertMessage');
+        alertDiv.className = 'alert alert-' + type;
+        alertDiv.textContent = message;
+        alertDiv.style.display = 'block';
+    }
+
+    function generateAndSendOTP(username, email, ttlMinutes = 5) {
+        const code = Math.floor(100000 + Math.random() * 900000);
+        const otpObj = {
+            id: Date.now(),
+            code: String(code),
+            expiresAt: Date.now() + ttlMinutes * 60 * 1000,
+            attempts: 0,
+            resendCount: 0
+        };
+        localStorage.setItem('otp_' + username, JSON.stringify(otpObj));
+
+        // Log security event
+        const alerts = JSON.parse(localStorage.getItem('securityAlerts') || '[]');
+        alerts.unshift({
+            id: Date.now(),
+            type: 'admin_otp_sent',
+            username: username,
+            date: new Date().toLocaleString(),
+            message: 'Admin OTP generated and sent to ' + email + ' (Code: ' + code + ' for demo)'
+        });
+        localStorage.setItem('securityAlerts', JSON.stringify(alerts));
+
+        // Demo alert with code
+        alert('OTP sent to ' + email + '\n(For demo: ' + code + ')');
+    }
+</script>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
